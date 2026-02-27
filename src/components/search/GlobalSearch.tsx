@@ -13,25 +13,39 @@ interface SearchResult {
 }
 
 export const GlobalSearch = () => {
-  const { accentColor } = useTheme();
+  // Use a fallback color if accentColor is undefined
+  const { accentColor = 'blue' } = useTheme(); 
   const { user } = useUser();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
 
-  // Mock Search Data
+  // Mapping colors for Tailwind (Fixes the dynamic class bug)
+  const colorMap: Record<string, string> = {
+    blue: 'text-blue-400 bg-blue-500/10',
+    amber: 'text-amber-400 bg-amber-500/10',
+    emerald: 'text-emerald-400 bg-emerald-500/10',
+  };
+
+  const currentColorClass = colorMap[accentColor] || colorMap.blue;
+
   const searchData: SearchResult[] = [
     { id: '1', title: `${user?.mjcSubject || 'MJC'} Syllabus`, type: 'syllabus', path: '/syllabus' },
     { id: '2', title: 'CGPA Calculator', type: 'tool', path: '/calculator' },
     { id: '3', title: 'Attendance Tracker', type: 'tool', path: '/attendance' },
-    { id: '4', title: `${user?.mjcSubject || 'Physics'} Notes Unit 1`, type: 'resource', path: '/resources' },
-    { id: '5', title: `${user?.mjcSubject || 'Chemistry'} Lab Manual`, type: 'resource', path: '/resources' },
-    { id: '6', title: `${user?.mjcSubject || 'History'} Timeline`, type: 'resource', path: '/resources' },
+    { id: '4', title: 'Physics Notes Unit 1', type: 'resource', path: '/resources' },
+    { id: '5', title: 'Chemistry Lab Manual', type: 'resource', path: '/resources' },
+    { id: '6', title: 'History Timeline', type: 'resource', path: '/resources' },
     { id: '7', title: 'Accountancy Basics', type: 'resource', path: '/resources' },
   ];
 
   useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    
     if (query.trim()) {
       const filtered = searchData.filter(item => 
         item.title.toLowerCase().includes(query.toLowerCase())
@@ -40,6 +54,8 @@ export const GlobalSearch = () => {
     } else {
       setResults([]);
     }
+
+    return () => window.removeEventListener('keydown', handleEsc);
   }, [query]);
 
   return (
@@ -47,6 +63,7 @@ export const GlobalSearch = () => {
       <button 
         onClick={() => setIsOpen(true)}
         className="p-2 hover:bg-white/5 rounded-full text-white/60 hover:text-white transition-colors relative z-50"
+        aria-label="Open Search"
       >
         <Search className="w-5 h-5" />
       </button>
@@ -96,7 +113,7 @@ export const GlobalSearch = () => {
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors group text-left"
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg bg-${accentColor}-500/10 text-${accentColor}-400`}>
+                          <div className={`p-2 rounded-lg ${currentColorClass}`}>
                             <FileText className="w-4 h-4" />
                           </div>
                           <div>
@@ -121,7 +138,7 @@ export const GlobalSearch = () => {
               
               <div className="p-3 border-t border-white/10 bg-white/5 text-[10px] text-white/30 flex justify-between">
                 <span>Press ESC to close</span>
-                <span>BRABU Search</span>
+                <span>RDS Scholar Search • Himanshu Kumar</span>
               </div>
             </motion.div>
           </div>
